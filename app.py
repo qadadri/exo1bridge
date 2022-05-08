@@ -25,10 +25,14 @@ def parsing():
 
 @app.route('/')
 def show_page():
-    return(render_template('index.html'))
+    conn = sqlite3.connect('bridge_db')
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM bridges") 
+    df_show = pd.DataFrame(cur.fetchall(), columns=[i[0] for i in cur.description])
+    result = df_show.to_html().replace("class=", "id=") 
+    conn.commit()
+    conn.close()
+    return(render_template('index.html' ,result=result))
 
-@app.route('/predict', methods=['POST'])
-def get_predictions_form():
-    return
 if __name__ == "__main__":
     app.run("0.0.0.0", 5000)

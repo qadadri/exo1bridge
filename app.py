@@ -14,10 +14,18 @@ def parsing():
     page = requests.get('https://fr.wikipedia.org/wiki/Liste_de_ponts_d%27Italie').text
     soup = BeautifulSoup(page, 'html.parser')
     table = soup.find('table', class_="wikitable sortable")
+    coords = table.findAll('a', class_ ='mw-kartographer-maplink', href=True)
+    n = len(coords)
+    lat, lon = [], []
+    for coord in coords:
+      lat.append(float(coord['data-lat']))
+      lon.append(float(coord['data-lon']))
     table_text = re.sub(reg, "\n", str(table))
     df = pd.read_html(table_text)
     df = pd.concat(df)
     df = df.drop(df.columns[[0, 1, -1]], axis=1)
+    df['Latitude'] = lat
+    df['Longitude'] = lon
     conn = sqlite3.connect('bridge_db') 
     df.to_sql('bridges', conn, if_exists='replace', index = False)   
     conn.commit()
